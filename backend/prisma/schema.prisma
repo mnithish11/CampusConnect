@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                         String             @id @default(uuid())
+  name                       String
+  email                      String             @unique
+  university                 String
+  passwordHash               String
+  emailVerified              Boolean            @default(false)
+  emailVerificationTokenHash String?            @unique
+  verificationTokenExpiry    DateTime?
+  createdAt                  DateTime           @default(now())
+  updatedAt                  DateTime           @updatedAt
+
+  profile                    StudentProfile?
+
+  sentConnections            Connection[]       @relation("ConnectionSender")
+  receivedConnections        Connection[]       @relation("ConnectionReceiver")
+}
+
+model StudentProfile {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  degree     String
+  branch     String
+  year       String
+  country    String
+  bio        String   @default("")
+  skills     String[] @default([])
+  interests  String[] @default([])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Connection {
+  id          String           @id @default(uuid())
+  senderId    String
+  receiverId  String
+  status      ConnectionStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  sender      User             @relation("ConnectionSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver    User             @relation("ConnectionReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+  @@index([senderId, status])
+  @@index([receiverId, status])
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
