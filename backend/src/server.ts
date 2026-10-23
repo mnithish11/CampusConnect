@@ -33,12 +33,21 @@ app.use(express.json({ limit: "20kb" }));
 // 2. DATABASE CONNECTION
 // ==================================================
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL is missing from backend/.env");
+const connectionString =
+  process.env.NODE_ENV === "production"
+    ? process.env.PRODUCTION_DATABASE_URL
+    : process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error(
+    process.env.NODE_ENV === "production"
+      ? "PRODUCTION_DATABASE_URL is missing."
+      : "DATABASE_URL is missing from backend/.env"
+  );
 }
 
 const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL,
+  connectionString,
 });
 
 const prisma = new PrismaClient({ adapter });

@@ -1,54 +1,44 @@
-# Dependencies
-node_modules/
-**/node_modules/
+Dependencies
 
-# Environment variables and secrets
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+Environment variables and secrets
+
 .env
 .env.*
 !.env.example
-**/.env
-**/.env.*
-!**/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
 
-# Build output
+Build output
+
 frontend/dist/
 backend/dist/
 
-# Generated and temporary files
+Generated and temporary files
+
 .DS_Store
 *.log
 coverage/
 
-# Local backups
+Local backups
+
 *.backup
 *.bak
-*.backup.txt
-
-# Local database files
-*.db
-*.sqlite
-*.sqlite3
-
-# Local backup source files
 *.backup.ts
 *.before-connection-fix.ts
-
-# Generated Prisma client
-backend/src/generated/prisma/
-
-# Local AI coding tool data
-backend/.cursor/
-backend/.devin/
-
-# Exclude generated Prisma client
-backend/src/generated/prisma/
-
-# Exclude local coding-tool folders
+*.backup.txt
+# AI coding tool configuration
 backend/.agents/
 backend/.claude/
 backend/.cursor/
 backend/.devin/
 
-# Exclude backup source files
-*.backup.ts
-*.before-connection-fix.ts
+# Generated Prisma client
+backend/src/generated/
