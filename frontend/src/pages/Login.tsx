@@ -2,6 +2,8 @@ import { Link, useNavigate } from "react-router";
 import { GraduationCap, ArrowRight } from "lucide-react";
 import { useState } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+
 export default function Login() {
   const navigate = useNavigate();
 
@@ -17,9 +19,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        "http://localhost:5001/api/auth/login",
-        {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

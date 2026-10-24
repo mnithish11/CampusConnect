@@ -8,6 +8,8 @@ import {
   Mail,
 } from "lucide-react";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+
 type VerificationStatus = "loading" | "success" | "error" | "waiting";
 
 export default function VerifyEmail() {
@@ -36,10 +38,8 @@ export default function VerifyEmail() {
     async function verifyEmail() {
       try {
         const response = await fetch(
-          `http://localhost:5001/api/auth/verify-email?token=${encodeURIComponent(
-            token!
-          )}`
-        );
+  `${API_URL}/api/auth/verify-email?token=${encodeURIComponent(token ?? "")}`
+);
 
         const data = await response.json();
 
