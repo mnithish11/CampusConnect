@@ -23,15 +23,26 @@ const allowedOrigins = [
   "http://localhost:5176",
   "https://campus-connect-lac-two.vercel.app",
   process.env.FRONTEND_URL,
-].filter((origin): origin is string => Boolean(origin));
+]
+  .filter((origin): origin is string => Boolean(origin))
+  .map((origin) => origin.replace(/\/$/, ""));
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      // Allow requests without an Origin header, such as health checks.
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin.replace(/\/$/, ""))) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Origin not allowed by CORS"));
+    },
   }),
 );
-
-app.use(express.json({ limit: "20kb" }));
 
 // ==================================================
 // 2. DATABASE CONNECTION
