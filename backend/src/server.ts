@@ -21,6 +21,7 @@ const allowedOrigins = [
   "http://localhost:5174",
   "http://localhost:5175",
   "http://localhost:5176",
+  "https://campus-connect-lac-two.vercel.app",
   process.env.FRONTEND_URL,
 ].filter((origin): origin is string => Boolean(origin));
 
