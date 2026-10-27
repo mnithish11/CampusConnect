@@ -8,6 +8,8 @@ import { randomBytes, createHash } from "crypto";
 
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "./generated/prisma/client.js";
+import { Resend } from "resend";
+
 
 const app = express();
 app.use(express.json());
@@ -69,31 +71,34 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter });
 
-// ==================================================
-// 3. GMAIL CONFIGURATION
-// ==================================================
+// 3. RESEND EMAIL CONFIGURATION
 
-if (!process.env.SMTP_USER || !process.env.SMTP_APP_PASSWORD) {
-  throw new Error(
-    "SMTP_USER or SMTP_APP_PASSWORD is missing from backend/.env"
-  );
+if (!process.env.RESEND_API_KEY) {
+  throw new Error("RESEND_API_KEY is missing from environment variables");
 }
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_APP_PASSWORD,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-transporter.verify((error) => {
+async function sendVerificationEmail(
+  to: string,
+  subject: string,
+  html: string,
+) {
+  const { data, error } = await resend.emails.send({
+    from: "CampusConnect <onboarding@resend.dev>",
+    to,
+    subject,
+    html,
+  });
+
   if (error) {
-    console.error("Gmail connection failed:", error.message);
-  } else {
-    console.log("Gmail is ready to send emails!");
+    console.error("Resend email failed:", error.message);
+    throw new Error(error.message);
   }
-});
+
+  console.log("Verification email accepted by Resend:", data?.id);
+  return data;
+}
 
 // ==================================================
 // 4. HELPER FUNCTIONS
@@ -359,37 +364,21 @@ const verificationUrl =
   `${frontendUrl}/verify-email?token=${verificationToken}`;
 
     try {
-      await transporter.sendMail({
-        from: process.env.SMTP_USER,
-        to: user.email,
-        subject: "Verify your CampusConnect account",
-        text: `
-Hello ${user.name},
-
-Welcome to CampusConnect!
-
-Verify your email using this link:
-
-${verificationUrl}
-
-This link expires in 30 minutes.
-        `,
-        html: `
-          <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:30px;color:#222">
-            <h1>Welcome to CampusConnect!</h1>
-            <p>Hello ${escapeHtml(user.name)},</p>
-            <p>Verify your email address to continue.</p>
-            <p style="margin:30px 0">
-              <a href="${verificationUrl}"
-                style="background:#f4d83f;color:#111;padding:14px 24px;text-decoration:none;border:2px solid #111;border-radius:8px;font-weight:bold;display:inline-block">
-                Verify My Email
-              </a>
-            </p>
-            <p>This link expires in 30 minutes.</p>
-            <p>— The CampusConnect Team</p>
-          </div>
-        `,
-      });
+      await sendVerificationEmail(
+  user.email,
+  "Verify your CampusConnect account",
+  `
+  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 30px; color: #222;">
+    <h2>Welcome to CampusConnect, ${escapeHtml(user.name)}!</h2>
+    <p>Welcome to CampusConnect!</p>
+    <p>Verify your email using this link:</p>
+    <p>
+      <a href="${verificationUrl}">Verify your email</a>
+    </p>
+    <p>This link expires in 30 minutes.</p>
+  </div>
+  `,
+);
     } catch (emailError) {
       console.error("Verification email failed:", emailError);
 
@@ -479,35 +468,21 @@ const verificationUrl =
   `${frontendUrl}/verify-email?token=${verificationToken}`;
 
     try {
-      await transporter.sendMail({
-        from: process.env.SMTP_USER,
-        to: user.email,
-        subject: "Verify your CampusConnect account",
-        text: `
-Hello ${user.name},
-
-Please verify your CampusConnect account using this link:
-
-${verificationUrl}
-
-This link expires in 30 minutes.
-        `,
-        html: `
-          <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:30px;color:#222">
-            <h1>Verify your CampusConnect account</h1>
-            <p>Hello ${escapeHtml(user.name)},</p>
-            <p>Click below to verify your email address.</p>
-            <p style="margin:30px 0">
-              <a href="${verificationUrl}"
-                style="background:#f4d83f;color:#111;padding:14px 24px;text-decoration:none;border:2px solid #111;border-radius:8px;font-weight:bold;display:inline-block">
-                Verify My Email
-              </a>
-            </p>
-            <p>This link expires in 30 minutes.</p>
-            <p>— The CampusConnect Team</p>
-          </div>
-        `,
-      });
+      await sendVerificationEmail(
+  user.email,
+  "Verify your CampusConnect account",
+  `
+  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 30px; color: #222;">
+    <h2>Welcome to CampusConnect, ${escapeHtml(user.name)}!</h2>
+    <p>Welcome to CampusConnect!</p>
+    <p>Verify your email using this link:</p>
+    <p>
+      <a href="${verificationUrl}">Verify your email</a>
+    </p>
+    <p>This link expires in 30 minutes.</p>
+  </div>
+  `,
+);
     } catch (emailError) {
       console.error("Resend verification email failed:", emailError);
 
